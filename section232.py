@@ -13,16 +13,19 @@ driver = webdriver.Chrome("/usr/lib/chromium-browser/chromdriver", chrome_option
 
 url = "https://232app.azurewebsites.net/steelalum"
 driver.get(url)
-time.sleep(4)
+time.sleep(3)
+
+
 
 show_entries = driver.find_element(By.NAME, "erdashboard_length")
 show_entries.send_keys("100")
-time.sleep(4)
+time.sleep(3)
+page_source = driver.page_source
 
 
+soup = BeautifulSoup(page_source, "lxml")
 
-# page = requests.get(url)
-
-# soup = BeautifulSoup(page.content, "html.parser")
-
-# print(soup.prettify())
+record_selector = soup.find_all("tbody")
+print(record_selector)
+# for record in record_selector:
+#     print(record)
