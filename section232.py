@@ -40,7 +40,7 @@ exclusion_request_dict = dict.fromkeys(column_names)
 for each in column_names:
     exclusion_request_dict[each] = []
 
-print(exclusion_request_dict)
+# print(exclusion_request_dict)
 
 # finds all rows in the table
 tr = soup.find_all("tbody")[0].find_all("tr")
@@ -50,7 +50,7 @@ count = 0
 for record in tr:
     count += 1
     tr_data = record.find_all("td")
-    print(count, tr_data)
+    # print(count, tr_data)
 
     date = datetime.strptime(tr_data[6].string, "%m/%d/%Y").date()
 
@@ -64,3 +64,14 @@ for record in tr:
     exclusion_request_dict["Details"].append(tr_data[7].string)
 
 
+# page = soup.find("div", id = "erdashboard_paginate")
+# page_links = page.find_all("span")[0].find_all("a")
+# print(page_links[0])
+# page_links[0]
+
+page_div = driver.find_element(By.ID, "erdashboard_paginate")
+page_span = page_div.find_element(By.TAG_NAME, "span")
+page_links = page_span.find_element(By.TAG_NAME, "a")
+
+driver.find_element(By.XPATH, "//a[text()='2']").click()
+time.sleep(5)
