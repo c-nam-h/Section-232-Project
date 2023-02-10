@@ -1,10 +1,10 @@
 import requests
 import time
+import pandas as pd
+from datetime import datetime
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-import pandas as pd
-from datetime import datetime
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
@@ -16,7 +16,6 @@ options.add_argument("--incognito")
 driver = webdriver.Chrome("/usr/lib/chromium-browser/chromdriver", chrome_options = options)
 
 url = "https://232app.azurewebsites.net/steelalum"
-# driver.implicitly_wait(10)
 driver.get(url)
 time.sleep(2)
 
@@ -24,10 +23,10 @@ time.sleep(2)
 # locates the filter and updates the unmber of entries to show to 100
 show_entries = driver.find_element(By.NAME, "erdashboard_length")
 show_entries.send_keys("100")
-time.sleep(2) # waits for the page to reload when the filter is updated to show 100 entries
+time.sleep(3) # waits for the page to reload when the filter is updated to show 100 entries
 page_source = driver.page_source # gets the page source with 100 entries, which we will use in BeuatifulSoup
-
 soup = BeautifulSoup(page_source, "lxml")
+
 
 # retrieves the column names from the table and append them to list
 column_names = []
@@ -36,62 +35,60 @@ for each in th:
     column_names.append(each.text.strip())
 print(column_names)
 
+
 # creates an empty dictionry with keys from the extracted column names
 exclusion_request_dict = dict.fromkeys(column_names)
+
 
 # initialize exclusion_request_dict with each column to be an empty list
 for each in column_names:
     exclusion_request_dict[each] = []
 
-# print(exclusion_request_dict)
 
-# finds all rows in the table
-# WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@id='erdashboard']/tbody//tr")))
-# tr = soup.find_all("tbody")[0].find_all("tr")
-tr = WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@id='erdashboard']/tbody//tr")))
-
-
-# loops through the rows and append the data to the dictionary
+# to keep track of numbers of records and pages in the website
 count = 0
-page = 1
+page = 0
 
-for record in tr:
-    # count += 1
-    # tr_data = record.find_all("td")
 
-    # date = datetime.strptime(tr_data[6].string, "%m/%d/%Y").date()
+# loops through the table rows and append the data to the dictionary until the next button is disabled
+while True:
+    page += 1
 
-    # exclusion_request_dict["ID"].append(int(tr_data[0].string))
-    # exclusion_request_dict["Company"].append(tr_data[1].string)
-    # exclusion_request_dict["Product"].append(tr_data[2].string)
-    # exclusion_request_dict["HTSUSCode"].append(tr_data[3].string)
-    # exclusion_request_dict["Status"].append(tr_data[4].string)
-    # exclusion_request_dict["Days Remaining"].append(int(tr_data[5].string))
-    # exclusion_request_dict["Posted Date"].append(date)
-    # exclusion_request_dict["Details"].append(tr_data[7].string)
+    # waits until the table elements are visible when the page is loaded
+    # this is a must step for Selenium to scrap data from the dynamic table when we navigate through different pages
+    tr = WebDriverWait(driver, 5).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@id='erdashboard']/tbody//tr")))
 
-    exclusion_request_dict["ID"].append(record.find_element(By.XPATH, './td[1]').text)
-    exclusion_request_dict["Company"].append(record.find_element(By.XPATH, './td[2]').text)
-    exclusion_request_dict["Product"].append(record.find_element(By.XPATH, './td[3]').text)
-    exclusion_request_dict["HTSUSCode"].append(record.find_element(By.XPATH, './td[4]').text)
-    exclusion_request_dict["Status"].append(record.find_element(By.XPATH, './td[5]').text)
-    exclusion_request_dict["Days Remaining"].append(record.find_element(By.XPATH, './td[6]').text)
-    exclusion_request_dict["Posted Date"].append(record.find_element(By.XPATH, './td[7]').text)
-    exclusion_request_dict["Details"].append(record.find_element(By.XPATH, './td[8]').text)
+    for record in tr:
+        count += 1
 
-print(exclusion_request_dict["Company"])
+        exclusion_request_dict["ID"].append(record.find_element(By.XPATH, './td[1]').text)
+        exclusion_request_dict["Company"].append(record.find_element(By.XPATH, './td[2]').text)
+        exclusion_request_dict["Product"].append(record.find_element(By.XPATH, './td[3]').text)
+        exclusion_request_dict["HTSUSCode"].append(record.find_element(By.XPATH, './td[4]').text)
+        exclusion_request_dict["Status"].append(record.find_element(By.XPATH, './td[5]').text)
+        exclusion_request_dict["Days Remaining"].append(record.find_element(By.XPATH, './td[6]').text)
+        exclusion_request_dict["Posted Date"].append(record.find_element(By.XPATH, './td[7]').text)
+        exclusion_request_dict["Details"].append(record.find_element(By.XPATH, './td[8]').text)
+    
+    next_button = driver.find_element(By.ID, "erdashboard_next")
+    next_button_clickable = driver.find_element(By.ID, "erdashboard_next").get_attribute("class").split(" ")
+    print(next_button_clickable)
+    print(count, page)
+    if next_button_clickable[-1] == "disabled":
+        break
 
-driver.find_element(By.ID, "erdashboard_next").click()
-time.sleep(3)
+    print(exclusion_request_dict["ID"])
+    next_button.click() # goes to the next page
+    time.sleep(3)
 
 
 # finds all rows in the table
 # WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@id='erdashboard']/tbody//tr")))
 # tr = soup.find_all("tbody")[0].find_all("tr")
-tr = WebDriverWait(driver, 20).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@id='erdashboard']/tbody//tr")))
+# tr = WebDriverWait(driver, 5).until(EC.visibility_of_all_elements_located((By.XPATH, "//table[@id='erdashboard']/tbody//tr")))
 
 
-for record in tr:
+# for record in tr:
     # count += 1
     # tr_data = record.find_all("td")
 
@@ -106,16 +103,16 @@ for record in tr:
     # exclusion_request_dict["Posted Date"].append(date)
     # exclusion_request_dict["Details"].append(tr_data[7].string)
 
-    exclusion_request_dict["ID"].append(record.find_element(By.XPATH, './td[1]').text)
-    exclusion_request_dict["Company"].append(record.find_element(By.XPATH, './td[2]').text)
-    exclusion_request_dict["Product"].append(record.find_element(By.XPATH, './td[3]').text)
-    exclusion_request_dict["HTSUSCode"].append(record.find_element(By.XPATH, './td[4]').text)
-    exclusion_request_dict["Status"].append(record.find_element(By.XPATH, './td[5]').text)
-    exclusion_request_dict["Days Remaining"].append(record.find_element(By.XPATH, './td[6]').text)
-    exclusion_request_dict["Posted Date"].append(record.find_element(By.XPATH, './td[7]').text)
-    exclusion_request_dict["Details"].append(record.find_element(By.XPATH, './td[8]').text)
+#     exclusion_request_dict["ID"].append(record.find_element(By.XPATH, './td[1]').text)
+#     exclusion_request_dict["Company"].append(record.find_element(By.XPATH, './td[2]').text)
+#     exclusion_request_dict["Product"].append(record.find_element(By.XPATH, './td[3]').text)
+#     exclusion_request_dict["HTSUSCode"].append(record.find_element(By.XPATH, './td[4]').text)
+#     exclusion_request_dict["Status"].append(record.find_element(By.XPATH, './td[5]').text)
+#     exclusion_request_dict["Days Remaining"].append(record.find_element(By.XPATH, './td[6]').text)
+#     exclusion_request_dict["Posted Date"].append(record.find_element(By.XPATH, './td[7]').text)
+#     exclusion_request_dict["Details"].append(record.find_element(By.XPATH, './td[8]').text)
 
-print(exclusion_request_dict["Company"])
+# print(exclusion_request_dict["Company"])
 
 # # WebDriverWait(driver, timeout = 10).until(lambda d: d.find_element(By.TAG_NAME, "tbody"))
 # tr = soup.find_all("tbody")[0].find_all("tr")
@@ -123,6 +120,7 @@ print(exclusion_request_dict["Company"])
 #     count += 1
 #     tr_data = record.find_all("td")
 #     print(count, tr_data)
+
 
 
 driver.quit()
