@@ -12,7 +12,7 @@ from selenium.webdriver.support import expected_conditions as EC
 options = webdriver.ChromeOptions()
 options.add_argument("--ignore-certificate-errors")
 options.add_argument("--incognito")
-# options.add_argument("--headless") # runs the Chrome without opening a browser window
+options.add_argument("--headless") # runs the Chrome without opening a browser window
 driver = webdriver.Chrome("/usr/lib/chromium-browser/chromdriver", chrome_options = options)
 
 url = "https://232app.azurewebsites.net/steelalum"
@@ -40,7 +40,7 @@ print(column_names)
 exclusion_request_dict = dict.fromkeys(column_names)
 
 
-# initialize exclusion_request_dict with each column to be an empty list
+# initializes exclusion_request_dict with each column to be an empty list
 for each in column_names:
     exclusion_request_dict[each] = []
 
@@ -70,24 +70,21 @@ while True:
         exclusion_request_dict["Status"].append(record.find_element(By.XPATH, './td[5]').text)
         exclusion_request_dict["Days Remaining"].append(int(record.find_element(By.XPATH, './td[6]').text))
         exclusion_request_dict["Posted Date"].append(posted_date)
-        exclusion_request_dict["Details"].append(record.find_element(By.XPATH, './td[8]').text)
+        exclusion_request_dict["Details"].append("https://232app.azurewebsites.net/Forms/ExclusionRequestItem/" + record.find_element(By.XPATH, './td[1]').text)
     
     next_button = driver.find_element(By.ID, "erdashboard_next")
     next_button_clickable = driver.find_element(By.ID, "erdashboard_next").get_attribute("class").split(" ")
     print(next_button_clickable)
     print("Current Page:", page, "Total Counts:", count)
 
-    if page == 5:
-        break
-
     if next_button_clickable[-1] == "disabled":
         break
-
-    
 
     next_button.click() # goes to the next page
     time.sleep(3)
 
+
+# creates a dataframe using the section 232 data and save it to a csv file
 df = pd.DataFrame(exclusion_request_dict)
 df.to_csv("section232_exclusion_request_scraped.csv", index = False)
 
