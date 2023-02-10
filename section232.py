@@ -75,28 +75,20 @@ while True:
     next_button = driver.find_element(By.ID, "erdashboard_next")
     next_button_clickable = driver.find_element(By.ID, "erdashboard_next").get_attribute("class").split(" ")
     print(next_button_clickable)
-    print(count, page)
+    print("Current Page:", page, "Total Counts:", count)
+
+    if page == 5:
+        break
+
     if next_button_clickable[-1] == "disabled":
         break
 
-    print(exclusion_request_dict)
+    
+
     next_button.click() # goes to the next page
     time.sleep(3)
 
-
-    # date = datetime.strptime(tr_data[6].string, "%m/%d/%Y").date()
-
-    # exclusion_request_dict["ID"].append(int(tr_data[0].string))
-    # exclusion_request_dict["Company"].append(tr_data[1].string)
-    # exclusion_request_dict["Product"].append(tr_data[2].string)
-    # exclusion_request_dict["HTSUSCode"].append(tr_data[3].string)
-    # exclusion_request_dict["Status"].append(tr_data[4].string)
-    # exclusion_request_dict["Days Remaining"].append(int(tr_data[5].string))
-    # exclusion_request_dict["Posted Date"].append(date)
-    # exclusion_request_dict["Details"].append(tr_data[7].string)
-
-
-
-
+df = pd.DataFrame(exclusion_request_dict)
+df.to_csv("section232_exclusion_request_scraped.csv", index = False)
 
 driver.quit()
