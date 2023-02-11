@@ -1,4 +1,3 @@
-import requests
 import time
 import pandas as pd
 from datetime import datetime
@@ -12,7 +11,7 @@ from selenium.webdriver.support import expected_conditions as EC
 options = webdriver.ChromeOptions()
 options.add_argument("--ignore-certificate-errors")
 options.add_argument("--incognito")
-options.add_argument("--headless") # runs the Chrome without opening a browser window
+# options.add_argument("--headless") # runs the Chrome without opening a browser window
 driver = webdriver.Chrome("/usr/lib/chromium-browser/chromdriver", chrome_options = options)
 
 url = "https://232app.azurewebsites.net/steelalum"
@@ -52,6 +51,7 @@ page = 0
 
 # loops through the table rows and append the data to the dictionary until the next button is disabled
 while True:
+    start_time = time.time()
     page += 1
 
     # waits until the table elements are visible when the page is loaded
@@ -82,6 +82,11 @@ while True:
 
     next_button.click() # goes to the next page
     time.sleep(3)
+
+
+# measures the elapsed time to see performance and efficiency of the code
+end_time = time.time()
+print("Elapsed Time:", round(end_time - start_time, 2)/60, "minutes")
 
 
 # creates a dataframe using the section 232 data and save it to a csv file
